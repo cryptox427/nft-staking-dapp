@@ -91,7 +91,7 @@ export default function Home() {
                 //     SMARTCONTRACT_ABI_ERC20,
                 //     signer
                 // );
-                setDailyRewardRate((await contract.rate()) / Math.pow(10, 18) / 25)
+                // setDailyRewardRate((await contract.rate()) / Math.pow(10, 18) / 25)
 
                 /////////////////
                 updatePage(address);

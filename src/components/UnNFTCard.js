@@ -32,11 +32,9 @@ export default function UnNFTCard({
     }
 
     const getReward = async () => {
-        const now = new Date().getTime() / 1000;
-        const rate = parseFloat(await contract.rate()) / Math.pow(10, 18);
-        // const data = await contract.viewStake(id);
-        // const reward = (now - parseFloat(data.releaseTime)) * rate / (24 * 60 * 60) / 25;
-        setReward(0);
+        const _reward = (await contract.getReward(stakingId)) / Math.pow(10, 10);
+        console.log('rewrd---', _reward)
+        setReward(_reward);
     }
 
     const showReward = () => {
@@ -63,10 +61,10 @@ export default function UnNFTCard({
     const onClaim = async () => {
         setLoading(true);
         try {
-            const unstake = await contract.getReward(stakingId)
-            await unstake.wait();
+            const claim = await contract.claimReward(stakingId)
+            await claim.wait();
             successAlert("Claiming is successful.")
-            updatePage(signerAddress)
+            getReward();
         } catch (error) {
             setLoading(false)
             console.log(error)
@@ -83,7 +81,7 @@ export default function UnNFTCard({
         <div className="nft-card">
             <div className="reward">
                 <p>Reward:</p>
-                <span>{parseFloat(reward).toLocaleString()} DUNK</span>
+                <span>{parseFloat(reward).toLocaleString()} MTK</span>
             </div>
             {loading &&
                 <div className="card-loading">
