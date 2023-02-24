@@ -1,22 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import Head from "next/head"
 import Header from "../components/Header";
 import styles from "../styles/Home.module.css";
 import Web3 from "web3"
 import Web3Modal from "web3modal"
-import { ethers, providers } from "ethers"
-import { providerOptions } from "../contracts/utils"
-import { CHAIN_ID, NETWORK, SITE_ERROR, SMARCONTRACT_INI_ABI, SMARTCONTRACT_ABI_ERC20, SMARTCONTRACT_ADDRESS_ERC20, StakingContract_ABI, StakingContract_Address, StakingContract_Address_NFT } from "../../config"
+import {ethers, providers} from "ethers"
+import {providerOptions} from "../contracts/utils"
+import {
+    CHAIN_ID,
+    NETWORK,
+    NFTContract_ABIs,
+    NFTContract_Addresses,
+    SITE_ERROR,
+    SMARCONTRACT_INI_ABI,
+    StakingContract_ABI,
+    StakingContract_Address,
+    StakingContract_Address_NFT
+} from "../../config"
 import NFTCard from "../components/NFTCard";
-import { errorAlertCenter, successAlert } from "../components/toastGroup";
-import { Container, Grid, Button } from "@mui/material";
+import {errorAlertCenter, successAlert} from "../components/toastGroup";
+import {Container, Grid} from "@mui/material";
 import UnNFTCard from "../components/UnNFTCard";
-import { PageLoading } from "../components/Loading";
+import {PageLoading} from "../components/Loading";
 
 let web3Modal = undefined;
 let contract = undefined;
 let contract_20 = undefined;
 let contract_nft = undefined;
+let contract_staking = undefined;
+let nftContracts = {};
 
 export default function Home() {
     const [connected, setConnected] = useState(false);
@@ -59,12 +71,27 @@ export default function Home() {
                     signer
                 );
 
-                contract_20 = new ethers.Contract(
-                    SMARTCONTRACT_ADDRESS_ERC20,
-                    SMARTCONTRACT_ABI_ERC20,
+                contract_staking = new ethers.Contract(
+                    StakingContract_Address,
+                    StakingContract_ABI,
                     signer
                 );
-                setDailyRewardRate((await contract.getRewardRate()) / Math.pow(10, 18) / 25)
+
+                for (let i = 0; i < NFTContract_Addresses.length; i++) {
+                    nftContracts[NFTContract_Addresses[i]] = new ethers.Contract(
+                        NFTContract_Addresses[i],
+                        NFTContract_ABIs[i],
+                        signer
+                    );
+                }
+
+
+                // contract_20 = new ethers.Contract(
+                //     SMARTCONTRACT_ADDRESS_ERC20,
+                //     SMARTCONTRACT_ABI_ERC20,
+                //     signer
+                // );
+                setDailyRewardRate((await contract.rate()) / Math.pow(10, 18) / 25)
 
                 /////////////////
                 updatePage(address);
@@ -82,58 +109,27 @@ export default function Home() {
 
     const updatePage = async (address) => {
         setLoading(true)
-        let unstaked = []
-        let staked = []
-        const balance = await contract_nft.balanceOf(address)
-        const totalSupply = await contract.getTotalStaked()
-        let total = 0
-        try {
-            let promise_index = [];
-            for (let i = 0; i < parseInt(balance); i++) {
-                promise_index.push(contract_nft.tokenOfOwnerByIndex(address, i))
+        let unstaked = [], staked = [];
+        for (let i = 0; i < NFTContract_Addresses.length; i++) {
+            let tokens = await nftContracts[NFTContract_Addresses[i]].walletOfOwner(address);
+            let id = unstaked.length;
+            for (let j = 0; j < tokens.length; j++) {
+                unstaked.push({id, collection: NFTContract_Addresses[i], tokenId: parseInt(tokens[j].toString())});
             }
-            const indexData = await Promise.all(promise_index);
-            for (let i = 0; i < indexData.length; i++) {
-                unstaked.push(
-                    {
-                        id: parseInt(indexData[i]),
-                        tokenId: parseInt(indexData[i])
-                    }
-                )
-            }
-
-            let promise = [];
-            for (let i = 0; i < parseInt(totalSupply); i++) {
-                promise.push(contract.viewStake(i))
-            }
-            const data = await Promise.all(promise);
-            const now = new Date().getTime() / 1000;
-            const rate = parseFloat(await contract.getRewardRate()) / Math.pow(10, 18);
-
-            for (let i = 0; i < data.length; i++) {
-                if (data[i].status === 1) {
-                    // console.log(i, "pool ID--------------------------");
-                }
-                if (data[i].status === 0) {
-                    total++
-                    if (data[i].staker.toLowerCase() === address.toLowerCase()) {
-                        console.log(rate)
-                        staked.push(
-                            {
-                                id: i,
-                                tokenId: data[i].tokenId.toNumber(),
-                                status: data[i].status
-                            }
-                        )
-                    }
-                }
-            }
-        } catch (error) {
-            console.log(error)
         }
+        console.log('unstaked----', unstaked);
+        let balance = await contract_staking.balances(address);
+        for (let i = 0; i < balance; i++) {
+            let stakingId = await contract_staking.stakingOfOwnerByIndex(address, i);
+            let stakingInfo = await contract_staking.stakingById(stakingId);
+            let id = staked.length;
+            staked.push({id, collection: stakingInfo[1], tokenId: parseInt(stakingInfo[2].toString()), stakingId})
+        }
+        let totalStakings = await contract_staking.getTotalStakings();
+        console.log('staked---', staked)
         setUnstakedNFTs(unstaked);
         setStakedNFTs(staked);
-        setTotalStaked(total);
+        setTotalStaked(totalStakings.toString())
         setLoading(false);
     }
 
@@ -251,7 +247,7 @@ export default function Home() {
                         <h1 className="title">
                             Stake Your NFT
                         </h1>
-                        <p className="reward-rate">daily reward rate: <span>{dailyRewardRate === 0 ? "--" : dailyRewardRate} DUNK</span></p>
+                        {/*<p className="reward-rate">daily reward rate: <span>{dailyRewardRate === 0 ? "--" : dailyRewardRate} MTK</span></p>*/}
                     </Container>
                 </div>
                 {connected &&
@@ -289,8 +285,9 @@ export default function Home() {
                                                             tokenId={item.tokenId}
                                                             signerAddress={signerAddress}
                                                             updatePage={() => updatePage(signerAddress)}
-                                                            contract={contract}
-                                                            contract_nft={contract_nft}
+                                                            contract={contract_staking}
+                                                            contract_nft={nftContracts[item.collection]}
+                                                            collection = {item.collection}
                                                         />
                                                     ))}
                                                 </div>
@@ -336,8 +333,9 @@ export default function Home() {
                                                             tokenId={item.tokenId}
                                                             signerAddress={signerAddress}
                                                             updatePage={() => updatePage(signerAddress)}
-                                                            contract={contract}
-                                                            contract_nft={contract_nft}
+                                                            contract={contract_staking}
+                                                            contract_nft={nftContracts[item.collection]}
+                                                            stakingId = {item.stakingId}
                                                         />
                                                     ))}
                                                 </div>

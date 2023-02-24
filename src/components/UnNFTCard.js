@@ -12,6 +12,7 @@ export default function UnNFTCard({
     updatePage,
     contract,
     contract_nft,
+    stakingId
 }) {
     const [loading, setLoading] = useState(false);
     const [image, setImage] = useState("");
@@ -32,10 +33,10 @@ export default function UnNFTCard({
 
     const getReward = async () => {
         const now = new Date().getTime() / 1000;
-        const rate = parseFloat(await contract.getRewardRate()) / Math.pow(10, 18);
-        const data = await contract.viewStake(id);
-        const reward = (now - parseFloat(data.releaseTime)) * rate / (24 * 60 * 60) / 25;
-        setReward(reward);
+        const rate = parseFloat(await contract.rate()) / Math.pow(10, 18);
+        // const data = await contract.viewStake(id);
+        // const reward = (now - parseFloat(data.releaseTime)) * rate / (24 * 60 * 60) / 25;
+        setReward(0);
     }
 
     const showReward = () => {
@@ -48,7 +49,7 @@ export default function UnNFTCard({
     const onUnStake = async () => {
         setLoading(true);
         try {
-            const unstake = await contract.unStake([id])
+            const unstake = await contract.unStake(stakingId)
             await unstake.wait();
             successAlert("Unstaking is successful.")
             updatePage(signerAddress)
@@ -62,7 +63,7 @@ export default function UnNFTCard({
     const onClaim = async () => {
         setLoading(true);
         try {
-            const unstake = await contract.claimReward([id])
+            const unstake = await contract.getReward(stakingId)
             await unstake.wait();
             successAlert("Claiming is successful.")
             updatePage(signerAddress)

@@ -12,7 +12,8 @@ export default function NFTCard({
     signerAddress,
     updatePage,
     contract,
-    contract_nft
+    contract_nft,
+    collection
 }) {
     const [loading, setLoading] = useState(false);
     const [image, setImage] = useState("");
@@ -36,7 +37,7 @@ export default function NFTCard({
                 const approve = await contract_nft.setApprovalForAll(StakingContract_Address, true)
                 await approve.wait();
             }
-            const stake = await contract.callStakeToken(StakingContract_Address_NFT, [id])
+            const stake = await contract.stake(collection, tokenId)
             await stake.wait();
             successAlert("Staking is successful.")
             updatePage(signerAddress)
