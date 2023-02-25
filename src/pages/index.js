@@ -216,8 +216,9 @@ export default function Home() {
                 <div className="top-title">
                     <Container maxWidth="lg">
                         <h1 className="title">
-                            Stake Your NFT
+                            Top Secret Staking
                         </h1>
+                        <h3 className="sub-title">Sponsored by- LetsGoRare.com and EscrowCRO.com</h3>
                         {/*<p className="reward-rate">daily reward rate: <span>{dailyRewardRate === 0 ? "--" : dailyRewardRate} MTK</span></p>*/}
                     </Container>
                 </div>
@@ -322,7 +323,7 @@ export default function Home() {
             </main>
             {/* eslint-disable-next-line */}
             <img
-                src="/kongbackground.gif"
+                src="/back.png"
                 className="background"
                 alt=""
             />
