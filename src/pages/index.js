@@ -111,13 +111,13 @@ export default function Home() {
         setLoading(true)
         let unstaked = [], staked = [];
         for (let i = 0; i < NFTContract_Addresses.length; i++) {
-            let tokens = await nftContracts[NFTContract_Addresses[i]].walletOfOwner(address);
+            let tokens = await nftContracts[NFTContract_Addresses[i]].balanceOf(address);
             let id = unstaked.length;
-            for (let j = 0; j < tokens.length; j++) {
-                unstaked.push({id, collection: NFTContract_Addresses[i], tokenId: parseInt(tokens[j].toString())});
+            for (let j = 0; j < tokens; j++) {
+                let tokenId = await nftContracts[NFTContract_Addresses[i]].tokenOfOwnerByIndex(address, j)
+                unstaked.push({id, collection: NFTContract_Addresses[i], tokenId});
             }
         }
-        console.log('unstaked----', unstaked);
         let balance = await contract_staking.balances(address);
         for (let i = 0; i < balance; i++) {
             let stakingId = await contract_staking.stakingOfOwnerByIndex(address, i);
@@ -126,7 +126,6 @@ export default function Home() {
             staked.push({id, collection: stakingInfo[1], tokenId: parseInt(stakingInfo[2].toString()), stakingId})
         }
         let totalStakings = await contract_staking.getTotalStakings();
-        console.log('staked---', staked)
         setUnstakedNFTs(unstaked);
         setStakedNFTs(staked);
         setTotalStaked(totalStakings.toString())
@@ -232,8 +231,8 @@ export default function Home() {
     return (
         <>
             <Head>
-                <title>Seattle SuperKongs Staking</title>
-                <meta name="description" content="Seattle SuperKongs Staking" />
+                <title>NFT Staking Pool</title>
+                <meta name="description" content="NFT Staking Pool" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main className={styles.main}>
