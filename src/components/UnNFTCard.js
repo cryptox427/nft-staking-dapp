@@ -30,7 +30,7 @@ export default function UnNFTCard({
     }
 
     const getReward = async () => {
-        const _reward = (await contract.getReward(stakingId)) / Math.pow(10, 10);
+        const _reward = parseFloat((await contract.getReward(stakingId)) / Math.pow(10, 18)).toFixed(7);
         setReward(_reward);
     }
 
@@ -77,7 +77,7 @@ export default function UnNFTCard({
         <div className="nft-card">
             <div className="reward">
                 <p>Reward:</p>
-                <span>{parseFloat(reward).toLocaleString()} MTK</span>
+                <span>{reward} MTK</span>
             </div>
             {loading &&
                 <div className="card-loading">
