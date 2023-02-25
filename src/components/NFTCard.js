@@ -13,7 +13,8 @@ export default function NFTCard({
     updatePage,
     contract,
     contract_nft,
-    collection
+    collection,
+    name
 }) {
     const [loading, setLoading] = useState(false);
     const [image, setImage] = useState("");
@@ -53,12 +54,16 @@ export default function NFTCard({
     }, [])
     return (
         <div className="nft-card">
+            <div className="reward">
+                <p>{name}</p>
+                <span>{tokenId.toString()}</span>
+            </div>
+            {loading &&
+            <div className="card-loading">
+                <PageLoading />
+            </div>
+            }
             <div className="media">
-                {loading &&
-                    <div className="card-loading">
-                        <PageLoading />
-                    </div>
-                }
                 {image === "" ?
                     <span className="empty-image empty-image-skeleton"></span>
                     :

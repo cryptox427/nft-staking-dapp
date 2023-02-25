@@ -88,9 +88,10 @@ export default function Home() {
         for (let i = 0; i < NFTContract_Addresses.length; i++) {
             let tokens = await nftContracts[NFTContract_Addresses[i]].balanceOf(address);
             let id = unstaked.length;
+            let name = await nftContracts[NFTContract_Addresses[i]].name();
             for (let j = 0; j < tokens; j++) {
                 let tokenId = await nftContracts[NFTContract_Addresses[i]].tokenOfOwnerByIndex(address, j)
-                unstaked.push({id, collection: NFTContract_Addresses[i], tokenId});
+                unstaked.push({id, collection: NFTContract_Addresses[i], tokenId, name});
             }
         }
         let balance = await contract_staking.balances(address);
@@ -201,6 +202,7 @@ export default function Home() {
                                                             contract={contract_staking}
                                                             contract_nft={nftContracts[item.collection]}
                                                             collection = {item.collection}
+                                                            name = {item.name}
                                                         />
                                                     ))}
                                                 </div>

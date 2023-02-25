@@ -34,13 +34,6 @@ export default function UnNFTCard({
         setReward(_reward);
     }
 
-    const showReward = () => {
-        getReward();
-        setInterval(() => {
-            getReward();
-        }, 10000);
-    }
-
     const onUnStake = async () => {
         setLoading(true);
         try {
@@ -71,7 +64,13 @@ export default function UnNFTCard({
 
     useEffect(() => {
         getNftDetail();
-        showReward();
+        getReward();
+        let interval = setInterval(() => {
+            getReward();
+        }, 10000);
+        return () => {
+            clearInterval(interval)
+        }
         // eslint-disable-next-line
     }, [])
     return (
