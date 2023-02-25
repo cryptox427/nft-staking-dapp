@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { StakingContract_Address, StakingContract_Address_NFT } from "../../config";
+import { StakingContract_Address } from "../../config";
 import { ScaleLoader } from "react-spinners";
 import { successAlert } from "./toastGroup";
 import { Button, Grid } from "@mui/material";

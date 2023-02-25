@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { StakingContract_Address, StakingContract_Address_NFT } from "../../config";
-import { ScaleLoader } from "react-spinners";
 import { successAlert } from "./toastGroup";
 import { PageLoading } from "./Loading";
 

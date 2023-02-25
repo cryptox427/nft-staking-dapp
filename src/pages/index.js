@@ -12,10 +12,8 @@ import {
     NFTContract_ABIs,
     NFTContract_Addresses,
     SITE_ERROR,
-    SMARCONTRACT_INI_ABI,
     StakingContract_ABI,
-    StakingContract_Address,
-    StakingContract_Address_NFT
+    StakingContract_Address
 } from "../../config"
 import NFTCard from "../components/NFTCard";
 import {errorAlertCenter, successAlert} from "../components/toastGroup";
@@ -24,9 +22,6 @@ import UnNFTCard from "../components/UnNFTCard";
 import {PageLoading} from "../components/Loading";
 
 let web3Modal = undefined;
-let contract = undefined;
-let contract_20 = undefined;
-let contract_nft = undefined;
 let contract_staking = undefined;
 let nftContracts = {};
 
@@ -59,18 +54,6 @@ export default function Home() {
                 setConnected(true);
                 setSignerAddress(address);
 
-                contract = new ethers.Contract(
-                    StakingContract_Address,
-                    StakingContract_ABI,
-                    signer
-                );
-
-                contract_nft = new ethers.Contract(
-                    StakingContract_Address_NFT,
-                    SMARCONTRACT_INI_ABI,
-                    signer
-                );
-
                 contract_staking = new ethers.Contract(
                     StakingContract_Address,
                     StakingContract_ABI,
@@ -84,14 +67,6 @@ export default function Home() {
                         signer
                     );
                 }
-
-
-                // contract_20 = new ethers.Contract(
-                //     SMARTCONTRACT_ADDRESS_ERC20,
-                //     SMARTCONTRACT_ABI_ERC20,
-                //     signer
-                // );
-                // setDailyRewardRate((await contract.rate()) / Math.pow(10, 18) / 25)
 
                 /////////////////
                 updatePage(address);
@@ -141,67 +116,6 @@ export default function Home() {
             errorAlertCenter(SITE_ERROR[0])
             return false
         }
-    }
-
-    const onStakeAll = async () => {
-        setStakeAllLoading(true);
-        let unstaked = [];
-        for (let item of unstakedNFTs) {
-            unstaked.push(item.id);
-        }
-        try {
-            const approved = await contract_nft.isApprovedForAll(signerAddress, StakingContract_Address);
-            console.log(approved, "approved")
-            if (!approved) {
-                const approve = await contract_nft.setApprovalForAll(StakingContract_Address, true)
-                await approve.wait();
-            }
-        console.log('-------', StakingContract_Address_NFT, unstaked[0])
-            const stake = await contract.callStakeToken(StakingContract_Address_NFT, 100)
-            await stake.wait();
-            successAlert("Staking is successful.")
-            updatePage(signerAddress)
-        } catch (error) {
-            setStakeAllLoading(false)
-            console.log(error)
-        }
-        setStakeAllLoading(false);
-    }
-
-    const onUnstakeAll = async () => {
-        setUnstakeAllLoading(true);
-        let staked = [];
-        for (let item of stakedNFTs) {
-            staked.push(item.id);
-        }
-        try {
-            const unstake = await contract.cancelStake(staked[0]);
-            await unstake.wait();
-            successAlert("Unstaking is successful.");
-            updatePage(signerAddress);
-        } catch (error) {
-            setUnstakeAllLoading(false);
-            console.log(error);
-        }
-        setUnstakeAllLoading(false)
-    }
-
-    const onClaimAll = async () => {
-        setClaimAllLoading(true);
-        let staked = [];
-        for (let item of stakedNFTs) {
-            staked.push(item.id);
-        }
-        try {
-            const unstake = await contract.claimReward(staked)
-            await unstake.wait();
-            successAlert("Claiming is successful.")
-            updatePage(signerAddress)
-        } catch (error) {
-            setClaimAllLoading(false)
-            console.log(error)
-        }
-        setClaimAllLoading(false)
     }
 
     useEffect(() => {
@@ -260,17 +174,17 @@ export default function Home() {
                                     <div className="nft-box">
                                         <div className="box-header">
                                             <h3>Your NFT {unstakedNFTs?.length && `(${unstakedNFTs?.length})`}</h3>
-                                            <div className="box-control">
-                                                <button className="btn-second" onClick={onStakeAll} disabled={stakeAllLoading}>
-                                                    {stakeAllLoading ?
-                                                        <div className="btn-loading">
-                                                            <PageLoading />
-                                                        </div>
-                                                        :
-                                                        <>STAKE ALL</>
-                                                    }
-                                                </button>
-                                            </div>
+                                            {/*<div className="box-control">*/}
+                                            {/*    <button className="btn-second" onClick={() => {}} disabled={stakeAllLoading}>*/}
+                                            {/*        {stakeAllLoading ?*/}
+                                            {/*            <div className="btn-loading">*/}
+                                            {/*                <PageLoading />*/}
+                                            {/*            </div>*/}
+                                            {/*            :*/}
+                                            {/*            <>STAKE ALL</>*/}
+                                            {/*        }*/}
+                                            {/*    </button>*/}
+                                            {/*</div>*/}
                                         </div>
                                         <div className="box">
                                             {loading ?
@@ -299,26 +213,26 @@ export default function Home() {
                                     <div className="nft-box">
                                         <div className="box-header">
                                             <h3>Staked NFT {stakedNFTs?.length && `(${stakedNFTs?.length})`}</h3>
-                                            <div className="box-control">
-                                                <button className="btn-second" onClick={onUnstakeAll} disabled={unstakeAllLoading}>
-                                                    {unstakeAllLoading ?
-                                                        <div className="btn-loading">
-                                                            <PageLoading />
-                                                        </div>
-                                                        :
-                                                        <>UNSTAKE ALL</>
-                                                    }
-                                                </button>
-                                                <button className="btn-second" onClick={onClaimAll} disabled={claimAllLoading}>
-                                                    {claimAllLoading ?
-                                                        <div className="btn-loading">
-                                                            <PageLoading />
-                                                        </div>
-                                                        :
-                                                        <>CLAIM ALL</>
-                                                    }
-                                                </button>
-                                            </div>
+                                            {/*<div className="box-control">*/}
+                                            {/*    <button className="btn-second" onClick={() => {}} disabled={unstakeAllLoading}>*/}
+                                            {/*        {unstakeAllLoading ?*/}
+                                            {/*            <div className="btn-loading">*/}
+                                            {/*                <PageLoading />*/}
+                                            {/*            </div>*/}
+                                            {/*            :*/}
+                                            {/*            <>UNSTAKE ALL</>*/}
+                                            {/*        }*/}
+                                            {/*    </button>*/}
+                                            {/*    <button className="btn-second" onClick={() => {}} disabled={claimAllLoading}>*/}
+                                            {/*        {claimAllLoading ?*/}
+                                            {/*            <div className="btn-loading">*/}
+                                            {/*                <PageLoading />*/}
+                                            {/*            </div>*/}
+                                            {/*            :*/}
+                                            {/*            <>CLAIM ALL</>*/}
+                                            {/*        }*/}
+                                            {/*    </button>*/}
+                                            {/*</div>*/}
                                         </div>
                                         <div className="box">
                                             {loading ?
