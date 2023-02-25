@@ -37,7 +37,7 @@ export default function UnNFTCard({
     const onUnStake = async () => {
         setLoading(true);
         try {
-            const unstake = await contract.unStake(stakingId)
+            const unstake = await contract.unStake([stakingId])
             await unstake.wait();
             successAlert("Unstaking is successful.")
             updatePage(signerAddress)
@@ -51,7 +51,7 @@ export default function UnNFTCard({
     const onClaim = async () => {
         setLoading(true);
         try {
-            const claim = await contract.claimReward(stakingId)
+            const claim = await contract.claimReward([stakingId])
             await claim.wait();
             successAlert("Claiming is successful.")
             getReward();

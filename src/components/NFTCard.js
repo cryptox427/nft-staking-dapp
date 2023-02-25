@@ -38,7 +38,7 @@ export default function NFTCard({
                 const approve = await contract_nft.setApprovalForAll(StakingContract_Address, true)
                 await approve.wait();
             }
-            const stake = await contract.stake(collection, tokenId)
+            const stake = await contract.stake([collection], [tokenId])
             await stake.wait();
             successAlert("Staking is successful.")
             updatePage(signerAddress)
