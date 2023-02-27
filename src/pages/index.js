@@ -315,6 +315,7 @@ export default function Home() {
                                                             contract={contract_staking}
                                                             contract_nft={nftContracts[item.collection]}
                                                             stakingId = {item.stakingId}
+                                                            collection = {item.collection}
                                                         />
                                                     ))}
                                                 </div>

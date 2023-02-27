@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { successAlert } from "./toastGroup";
 import { PageLoading } from "./Loading";
+import {StakingContract_Address, IPFS_URLs, NFTContract_Addresses} from "../../config";
 
 export default function UnNFTCard({
     id,
@@ -10,23 +11,24 @@ export default function UnNFTCard({
     updatePage,
     contract,
     contract_nft,
-    stakingId
+    stakingId,
+    collection
 }) {
     const [loading, setLoading] = useState(false);
     const [image, setImage] = useState("");
     const [reward, setReward] = useState(0);
 
     const getNftDetail = async () => {
-        const uri = await contract_nft?.tokenURI(tokenId);
-        await fetch(uri)
-            .then(resp =>
-                resp.json()
-            ).catch((e) => {
-                console.log(e);
-            }).then((json) => {
-                setImage(json?.image)
-            });
-
+        switch (collection) {
+            case NFTContract_Addresses[0]:
+                setImage(`${IPFS_URLs[0]}/${tokenId}.png`);
+                break;
+            case NFTContract_Addresses[1]:
+                setImage(IPFS_URLs[1]);
+                break;
+            case NFTContract_Addresses[2]:
+                setImage(`${IPFS_URLs[2]}/${tokenId}.gif`)
+        }
     }
 
     const getReward = async () => {
@@ -77,7 +79,7 @@ export default function UnNFTCard({
         <div className="nft-card">
             <div className="reward">
                 <p>Reward:</p>
-                <span>{reward} MTK</span>
+                <span>{reward} FAFO</span>
             </div>
             {loading &&
                 <div className="card-loading">
@@ -85,8 +87,8 @@ export default function UnNFTCard({
                 </div>
             }
             <div className="media">
-                {image === "" ?
-                    <span className="empty-image empty-image-skeleton"></span>
+                {image === "" || image === undefined?
+                    <img src="./undefined.png" alt={"undefined"}/>
                     :
                     // eslint-disable-next-line
                     <img
