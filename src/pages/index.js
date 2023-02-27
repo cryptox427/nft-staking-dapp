@@ -20,12 +20,14 @@ import {errorAlertCenter, successAlert} from "../components/toastGroup";
 import {Container, Grid} from "@mui/material";
 import UnNFTCard from "../components/UnNFTCard";
 import {PageLoading} from "../components/Loading";
+import {ukUA} from "@mui/material/locale";
 
 let web3Modal = undefined;
 let contract_staking = undefined;
 let nftContracts = {};
 
 export default function Home() {
+    const [web3Modal, setWeb3Modal] = useState(null);
     const [connected, setConnected] = useState(false);
     const [signerAddress, setSignerAddress] = useState("");
     const [unstakedNFTs, setUnstakedNFTs] = useState();
@@ -38,48 +40,55 @@ export default function Home() {
     const [dailyRewardRate, setDailyRewardRate] = useState(0);
 
     const connectWallet = async () => {
-        if (await checkNetwork()) {
+        if (web3Modal === null) return;
             setLoading(true)
-            web3Modal = new Web3Modal({
-                network: NETWORK, // optional
-                cacheProvider: true,
-                providerOptions, // required
-            })
             try {
-                const provider = await web3Modal.connect();
-                const web3Provider = new providers.Web3Provider(provider);
-                const signer = web3Provider.getSigner();
-                const address = await signer.getAddress();
+                if (!connected) {
+                    const provider = await web3Modal.connect();
+                    const web3Provider = new providers.Web3Provider(provider);
+                    const signer = web3Provider.getSigner();
+                    const address = await signer.getAddress();
+                    const network = await signer.getChainId();
+                    if (network !== 25) {
+                        errorAlertCenter("Please change the network to Cronos");
+                        return;
+                    }
 
-                setConnected(true);
-                setSignerAddress(address);
+                    setConnected(true);
+                    setSignerAddress(address);
 
-                contract_staking = new ethers.Contract(
-                    StakingContract_Address,
-                    StakingContract_ABI,
-                    signer
-                );
-
-                for (let i = 0; i < NFTContract_Addresses.length; i++) {
-                    nftContracts[NFTContract_Addresses[i]] = new ethers.Contract(
-                        NFTContract_Addresses[i],
-                        NFTContract_ABIs[i],
+                    contract_staking = new ethers.Contract(
+                        StakingContract_Address,
+                        StakingContract_ABI,
                         signer
                     );
+
+                    for (let i = 0; i < NFTContract_Addresses.length; i++) {
+                        nftContracts[NFTContract_Addresses[i]] = new ethers.Contract(
+                            NFTContract_Addresses[i],
+                            NFTContract_ABIs[i],
+                            signer
+                        );
+                    }
+
+                    /////////////////
+                    updatePage(address);
+                    /////////////////
+
+                    // Subscribe to accounts change
+                    provider.on("accountsChanged", (accounts) => {
+                        console.log(accounts[0], '--------------');
+                    });
+                } else {
+                    await web3Modal.clearCachedProvider();
+                    setConnected(false);
+                    setSignerAddress(null);
+                    contract_staking = null;
+                    nftContracts = {};
                 }
-
-                /////////////////
-                updatePage(address);
-                /////////////////
-
-                // Subscribe to accounts change
-                provider.on("accountsChanged", (accounts) => {
-                    console.log(accounts[0], '--------------');
-                });
             } catch (error) {
                 console.log(error)
             }
-        }
     }
 
     const updatePage = async (address) => {
@@ -120,7 +129,7 @@ export default function Home() {
     }
 
     const stakeAll = async () => {
-        setLoading(true);
+        setStakeAllLoading(true);
         if (unstakedNFTs.length === 0) {
             errorAlertCenter("You have no NFTs to stake");
             return;
@@ -138,7 +147,6 @@ export default function Home() {
             }
             const collections = unstakedNFTs.map(item => item.collection)
             const tokenIds = unstakedNFTs.map(item => parseInt(item.tokenId.toString()))
-            console.log('colections--', collections, tokenIds)
             const stake = await contract_staking.stake(collections, tokenIds);
             await stake.wait();
             successAlert("Staking is successful.")
@@ -147,14 +155,13 @@ export default function Home() {
             setLoading(false)
             console.log(e)
         }
-        setLoading(false)
+        setStakeAllLoading(false)
     }
 
     const unStakeAll = async () => {
-        setLoading(true);
+        setUnstakeAllLoading(true);
         try {
             const stakingIds = stakedNFTs.map(item => parseInt(item.stakingId.toString()));
-            console.log('stakindis---', stakingIds)
             const unstake = await contract_staking.unStake(stakingIds);
             await unstake.wait();
             successAlert("UnStaking is successful.")
@@ -163,14 +170,13 @@ export default function Home() {
             setLoading(false)
             console.log(e)
         }
-        setLoading(false)
+        setUnstakeAllLoading(false);
     }
 
     const claimAll = async () => {
-        setLoading(true);
+        setClaimAllLoading(true);
         try {
             const stakingIds = stakedNFTs.map(item => parseInt(item.stakingId.toString()));
-            console.log('stakindis---', stakingIds)
             const claim = await contract_staking.claimReward(stakingIds);
             await claim.wait();
             successAlert("Claim is successful.")
@@ -179,31 +185,16 @@ export default function Home() {
             setLoading(false)
             console.log(e)
         }
-        setLoading(false)
+        setClaimAllLoading(false)
     }
 
     useEffect(() => {
-        async function fetchData() {
-            if (typeof window.ethereum !== 'undefined') {
-                if (await checkNetwork()) {
-                    await connectWallet();
-                    ethereum.on('accountsChanged', function (accounts) {
-                        window.location.reload();
-                    });
-                    if (ethereum.selectedAddress !== null) {
-                        setSignerAddress(ethereum.selectedAddress);
-                        setConnected(true);
-                    }
-                    ethereum.on('chainChanged', (chainId) => {
-                        checkNetwork();
-                    })
-                }
-            } else {
-                errorAlertCenter(SITE_ERROR[1])
-            }
-        }
-        fetchData()
-        // eslint-disable-next-line
+            const _web3Modal = new Web3Modal({
+                cacheProvider: true,
+                providerOptions, // required
+                disableInjectedProvider: false
+            })
+            setWeb3Modal(_web3Modal);
     }, [])
 
     return (
