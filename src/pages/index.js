@@ -121,8 +121,14 @@ export default function Home() {
 
     const stakeAll = async () => {
         setLoading(true);
+        if (unstakedNFTs.length === 0) {
+            errorAlertCenter("You have no NFTs to stake");
+            return;
+        }
         try {
             for (let i = 0; i < NFTContract_Addresses.length; i ++) {
+                const tokens = unstakedNFTs.filter(item => item.collection === NFTContract_Addresses[i]);
+                if (tokens.length === 0) continue;
                 let approved = await nftContracts[NFTContract_Addresses[i]].isApprovedForAll(signerAddress, StakingContract_Address);
                 if (!approved) {
                     console.log('unapproved')

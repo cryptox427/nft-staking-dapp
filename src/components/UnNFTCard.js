@@ -30,7 +30,7 @@ export default function UnNFTCard({
     }
 
     const getReward = async () => {
-        const _reward = parseFloat((await contract.getReward(stakingId)) / Math.pow(10, 18)).toFixed(7);
+        const _reward = parseFloat((await contract.getReward(stakingId)) / Math.pow(10, 9)).toFixed(4);
         setReward(_reward);
     }
 
